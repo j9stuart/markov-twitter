@@ -1,4 +1,4 @@
-import os
+from os import environ
 import sys
 from random import choice
 import twitter
@@ -59,21 +59,62 @@ def make_text(chains):
     return " ".join(words)
 
 
-def tweet(chains):
+def make_text(chains):
+    """Takes dictionary of markov chains; returns random text."""
+     
+    start_text = choice(chains.keys())
+    master_text = start_text[0] + " " + start_text[1]
+    text_split = tuple(master_text.split())
+
+    while text_split[-2:] in chains:
+        new_word = choice(chains[text_split[-2:]])
+        master_text += (" "+ new_word)
+        text_split = tuple(master_text.split())
+
+    print len(master_text)
+    return master_text
+
+
+def tweet(master_text):
     # Use Python os.environ to get at environmental variables
     # Note: you must run `source secrets.sh` before running this file
     # to make sure these environmental variables are set.
-    pass
+    api = twitter.Api(
+        consumer_key=environ['TWITTER_CONSUMER_KEY'],
+        consumer_secret=environ['TWITTER_CONSUMER_SECRET'],
+        access_token_key=environ['TWITTER_ACCESS_TOKEN_KEY'],
+        access_token_secret=environ['TWITTER_ACCESS_TOKEN_SECRET'])
+
+    # print api.VerifyCredentials()
+    tweet_message = master_text[:125] + " #hbgracefall16"
+    tweet = api.PostUpdate(tweet_message)
+    return tweet
+
+def continue_tweeting():
+
+    keep_going = "y"
+    while keep_going != "q":
+        filenames = sys.argv[1:]
+        text = open_and_read_file(filenames)
+        chains = make_chains(text)
+        master_text = make_text(chains)
+        tweet(master_text)
+        keep_going = raw_input("Would you like to tweet again? Type 'y' for yes or 'q' to quit. ").lower()
 
 # Get the filenames from the user through a command line prompt, ex:
-# python markov.py green-eggs.txt shakespeare.txt
-filenames = sys.argv[1:]
+# # python markov.py green-eggs.txt shakespeare.txt
+# filenames = sys.argv[1:]
 
-# Open the files and turn them into one long string
-text = open_and_read_file(filenames)
+# # Open the files and turn them into one long string
+# text = open_and_read_file(filenames)
 
-# Get a Markov chain
-chains = make_chains(text)
+# # Get a Markov chain
+# chains = make_chains(text)
+
+# master_text = make_text(chains)
+
+continue_tweeting()
+
 
 # Your task is to write a new function tweet, that will take chains as input
-# tweet(chains)
+# print tweet(master_text)
