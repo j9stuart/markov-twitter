@@ -63,6 +63,10 @@ def make_text(chains):
     """Takes dictionary of markov chains; returns random text."""
      
     start_text = choice(chains.keys())
+    
+    while not start_text[0].istitle():
+        start_text = choice(chains.keys())
+
     master_text = start_text[0] + " " + start_text[1]
     text_split = tuple(master_text.split())
 
@@ -70,6 +74,7 @@ def make_text(chains):
         new_word = choice(chains[text_split[-2:]])
         master_text += (" "+ new_word)
         text_split = tuple(master_text.split())
+
 
     print len(master_text)
     return master_text
